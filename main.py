@@ -214,3 +214,8 @@ if __name__ == "__main__":
             f1 = download_html('Max', i[2])
         records.append((i[0], i[2], f1))
     pass
+    #run no, subject, date, attach_path, email_id, completed
+    #provide a function which will return table date with completed = blank
+    #get run no from table before line 209 and pass into variable run_no
+    subprocess.run(["python", ins + "_" + ct + ".py", mail.filePath, str(run_no), ins, ct, subject, l_time, hid,
+                    str(mail.latest_email_id)[2:-1]])
