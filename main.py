@@ -5,6 +5,7 @@ import re
 import random
 import sqlite3
 import string
+import subprocess
 from datetime import datetime, timedelta
 
 import pdfkit
@@ -204,18 +205,51 @@ def get_insurer_and_process(subject, email_id):
         log_exceptions(subject)
         return result
 
+
+def get_run_no():
+    run_no, q = 1, "select runno from updation_detail_log_copy order by runno desc limit 1;"
+    with sqlite3.connect(dbname) as con:
+        cur = con.cursor()
+        result = cur.execute(q).fetchone()
+        if result is not None:
+            return str(result[0]+1)
+    return str(run_no)
+
+
+def run_table_insert(run_no, subject, date, attach_path, email_id, completed):
+    q = f"insert into run_table values ('{run_no}','{subject}','{date}','{attach_path}','{email_id}','{completed}')"
+    with sqlite3.connect(dbname) as con:
+        cur = con.cursor()
+        cur.execute(q)
+        return True
+
+
+def run_table_get():
+    q, result = "select * from run_table where completed = ''", []
+    with sqlite3.connect(dbname) as con:
+        cur = con.cursor()
+        result = cur.execute(q).fetchall()
+        return result
+
 if __name__ == "__main__":
-    a = get_from_query()
-    b = get_insurer_and_process('Cashless Letter From Raksha Health Insurance TPA Pvt.Ltd. (N9014912431MAGICB,92000034200400000150,Alok Tyagi.)', "communication.abh@adityabirlacapital.com")
-    records = []
-    for i in a:
-        f1 = download_pdf('Max', i[2])
-        if not f1[0]:
-            f1 = download_html('Max', i[2])
-        records.append((i[0], i[2], f1))
-    pass
+    # a = get_from_query()
+    # b = get_insurer_and_process('Cashless Letter From Raksha Health Insurance TPA Pvt.Ltd. (N9014912431MAGICB,92000034200400000150,Alok Tyagi.)', "communication.abh@adityabirlacapital.com")
+    # records = []
+    # for i in a:
+    #     f1 = download_pdf('Max', i[2])
+    #     if not f1[0]:
+    #         f1 = download_html('Max', i[2])
+    #     records.append((i[0], i[2], f1))
+    # pass
     #run no, subject, date, attach_path, email_id, completed
-    #provide a function which will return table date with completed = blank
+    #provide a function which will return table data with completed = blank
     #get run no from table before line 209 and pass into variable run_no
-    subprocess.run(["python", ins + "_" + ct + ".py", mail.filePath, str(run_no), ins, ct, subject, l_time, hid,
-                    str(mail.latest_email_id)[2:-1]])
+    run_no = get_run_no()
+    run_table_insert(run_no, 'subject', 'date', 'attach_path', 'email_id', '')
+    a = run_table_get()
+    pass
+
+    # a = ["python",'fhpl_query.py', '/home/akshay/PycharmProjects/trial -live/fhpl/attachments_pdf_query/1380120-0711_32182.pdf', run_no, 'fhpl', 'query', 'Preauthorization Request of Patient Name : Harsh Ghalott   , Patient Uhid No : NIC.21861308 and Status : Pending', '04/10/2020 16:45:07', 'Max PPT', '32182']
+    # subprocess.run(a)
+    # subprocess.run(["python", ins + "_" + ct + ".py", mail.filePath, str(run_no), ins, ct, subject, l_time, hid,
+    #                 str(mail.latest_email_id)[2:-1]])
