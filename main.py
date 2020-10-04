@@ -3,17 +3,20 @@ import imaplib
 import os
 import re
 import random
+import sqlite3
 import string
 from datetime import datetime, timedelta
 
 import pdfkit
 
 from make_log import log_exceptions
+
 # from config import mydb
 
-folder = "files/"
+folder, dbname = "files/", "database1.db"
 if not os.path.exists(folder):
     os.mkdir(folder)
+
 
 def get_from_query():
     try:
@@ -53,15 +56,20 @@ def get_from_query():
         # result = mycursor.fetchall()
         result = [('MSS-1000293', '21CB08NIK0555', 'SATISH', '04/10/2020', '04/10/2020', '24', 'In Progress'),
                   ('MSS-1000306', '', 'NEHA  PUNDIR ', '02/10/2020', '03/10/2020', '16', 'Sent To TPA/ Insurer'),
-                  ('MSS-1000248', '90222021332949', 'LALIT SINGH RAWAT', '03/10/2020', '04/10/2020', '15', 'Sent To TPA/ Insurer'),
-                  ('MSS-1000269', 'NI-64-30680', 'SUNITA  BHATIJA ', '02/10/2020 12:46:50', '06/10/2020', '20', 'Sent To TPA/ Insurer'),
+                  ('MSS-1000248', '90222021332949', 'LALIT SINGH RAWAT', '03/10/2020', '04/10/2020', '15',
+                   'Sent To TPA/ Insurer'),
+                  ('MSS-1000269', 'NI-64-30680', 'SUNITA  BHATIJA ', '02/10/2020 12:46:50', '06/10/2020', '20',
+                   'Sent To TPA/ Insurer'),
                   ('MSS-1000299', None, 'ALKA JAIN', '02/10/2020 10:20:55', '09/10/2020', '3', 'Sent To TPA/ Insurer'),
                   ('MSS-1000305', None, 'SAVITA VERMA ', '12/10/2020', '12/10/2020', '8', 'Sent To TPA/ Insurer'),
                   ('MSS-1000306', None, 'NEHA  PUNDIR ', '02/10/2020', '05/10/2020', '16', 'Sent To TPA/ Insurer'),
                   ('MSS-1000315', None, 'SANDEEP ARORA ', '04/10/2020', '06/10/2020', '3', 'Sent To TPA/ Insurer'),
-                  ('MSS-1000320', None, 'LATA  NIWAS ', '02/10/2020 19:23:35', '05/10/2020', '15', 'Sent To TPA/ Insurer'),
+                  ('MSS-1000320', None, 'LATA  NIWAS ', '02/10/2020 19:23:35', '05/10/2020', '15',
+                   'Sent To TPA/ Insurer'),
                   ('MSS-1000326', 'RC-HS20-11366659', 'ALKA BALI ', '05/10/2020', '06/10/2020', 'I14', 'In Progress'),
-                  ('MSS-1000330', 'CIG/2021/161116/0375652', 'SOHAN  SINGH ', '03/10/2020 17:26:35', '06/10/2020', 'I29', 'In Progress')]
+                  (
+                  'MSS-1000330', 'CIG/2021/161116/0375652', 'SOHAN  SINGH ', '03/10/2020 17:26:35', '06/10/2020', 'I29',
+                  'In Progress')]
         return result
     except:
         log_exceptions()
@@ -120,6 +128,7 @@ def download_pdf(hospital, subject):
         log_exceptions(subject=subject)
         return file_list, subject, sender
 
+
 def download_html(hospital, subject):
     try:
         file_list, sender = [], ""
@@ -177,8 +186,27 @@ def download_html(hospital, subject):
         log_exceptions(subject=subject)
         return file_list, subject, sender
 
+
+def get_insurer_and_process(subject, email_id):
+    result = []
+    try:
+        q = f"select " \
+            f"email_ids.IC, IC_name.IC_name, email_master.table_name, email_master.subject " \
+            f"from email_ids " \
+            f"inner join email_master on email_ids.IC=email_master.ic_id " \
+            f"inner join IC_name on email_ids.IC=IC_name.IC " \
+            f"where email_ids='{email_id}' and email_master.subject like '%{subject}%'"
+        with sqlite3.connect(dbname) as con:
+            cur = con.cursor()
+            result = cur.execute(q).fetchall()
+        return result
+    except:
+        log_exceptions(subject)
+        return result
+
 if __name__ == "__main__":
     a = get_from_query()
+    b = get_insurer_and_process('Cashless Letter From Raksha Health Insurance TPA Pvt.Ltd. (N9014912431MAGICB,92000034200400000150,Alok Tyagi.)', "communication.abh@adityabirlacapital.com")
     records = []
     for i in a:
         f1 = download_pdf('Max', i[2])
