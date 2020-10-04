@@ -11,7 +11,9 @@ import pdfkit
 from make_log import log_exceptions
 # from config import mydb
 
-folder, row_no = "files/", '1'
+folder = "files/"
+if not os.path.exists(folder):
+    os.mkdir(folder)
 
 def get_from_query():
     try:
