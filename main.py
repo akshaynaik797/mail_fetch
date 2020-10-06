@@ -33,6 +33,48 @@ def get_from_query():
         return result
 
 
+def get_mail_id_list(hospital, result):
+    if hospital is None:
+        hospital = "Max"
+    fromtime = datetime.now().strftime("%d-%b-%Y")
+    totime = datetime.now() + timedelta(days=1)
+    totime = totime.strftime("%d-%b-%Y")
+
+    server, email_id, password, inbox = "", "", "", ""
+    if 'Max' in hospital:
+        server, email_id, password, inbox = "outlook.office365.com", "Tpappg@maxhealthcare.com", "Sept@2020", '"Deleted Items"'
+    elif 'inamdar' in hospital:
+        server, email_id, password, inbox = "imap.gmail.com", "mediclaim@inamdarhospital.org", "Mediclaim@2019", '"[Gmail]/Trash"'
+    mail = imaplib.IMAP4_SSL(server)
+    mail.login(email_id, password)
+    mail_id_list = []
+    mail.select('inbox', readonly=True)
+    for i in result:
+        p_name, temp_list = i[2], []
+        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
+        temp_list = data[0].split()
+        mail_id_list.extend(temp_list)
+    for i in result:
+        p_name, temp_list = i[2], []
+        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
+        temp_list = data[0].split()
+        mail_id_list.extend(temp_list)
+    mail.select(inbox, readonly=True)
+    for i in result:
+        p_name, temp_list = i[2], []
+        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
+        temp_list = data[0].split()
+        mail_id_list.extend(temp_list)
+    for i in result:
+        p_name, temp_list = i[2], []
+        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
+        temp_list = data[0].split()
+        mail_id_list.extend(temp_list)
+    mail_id_list = sorted(list(set(mail_id_list)))
+    return 1
+
+
+
 def download_pdf(hospital, subject):
     try:
         if hospital is None:
@@ -244,8 +286,9 @@ def insert_entry_if_sub_and_ltime_exist(subject, l_time):
 
 
 if __name__ == "__main__":
-    a = download_pdf('Max', "MR ANIL KHERA")
+    # a = download_pdf('Max', "MR ANIL KHERA")
     a = get_from_query()
+    a = get_mail_id_list('Max', a)
     if isinstance(a, dict):
         print(a)
         exit()
