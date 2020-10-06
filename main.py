@@ -35,7 +35,7 @@ def get_from_query():
 
 def download_pdf(hospital, subject):
     try:
-        file_list, sender, l_time = [], "", ""
+        file_name, sender, l_time = "", "", ""
         fromtime = datetime.now().strftime("%d-%b-%Y")
         totime = datetime.now() + timedelta(days=1)
         totime = totime.strftime("%d-%b-%Y")
@@ -51,11 +51,15 @@ def download_pdf(hospital, subject):
         subject = subject.replace("\r", "").replace("\n", "")
         type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{subject}"))')
         if data == [b'']:
-            mail.select(inbox, readonly=True)
-            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{subject}"))')
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{subject}"))')
+            if data == [b'']:
+                mail.select(inbox, readonly=True)
+                type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{subject}"))')
+                if data == [b'']:
+                    type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{subject}"))')
         mid_list = data[0].split()
         if mid_list == []:
-            return file_list, subject, sender
+            return file_name, subject, sender
         result, data = mail.fetch(mid_list[-1], "(RFC822)")
         try:
             raw_email = data[0][1].decode('utf-8')
@@ -84,17 +88,17 @@ def download_pdf(hospital, subject):
                 if not os.path.isfile(att_path):
                     fp = open(att_path, 'wb')
                     fp.write(mail.part.get_payload(decode=True))
-                    file_list.append(att_path)
+                    file_name = att_path
                     fp.close()
-        return file_list, subject, sender, l_time
+        return file_name, subject, sender, l_time
     except:
         log_exceptions(subject=subject)
-        return file_list, subject, sender, l_time
+        return file_name, subject, sender, l_time
 
 
 def download_html(hospital, subject):
     try:
-        file_list, sender, l_time = [], "", ""
+        file_name, sender, l_time = "", "", ""
         lowercase = string.ascii_lowercase
         filename = ''.join(random.choice(lowercase) for i in range(6))
         fromtime = datetime.now().strftime("%d-%b-%Y")
@@ -116,7 +120,7 @@ def download_html(hospital, subject):
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{subject}"))')
         mid_list = data[0].split()
         if mid_list == []:
-            return file_list, subject, sender, l_time
+            return file_name, subject, sender, l_time
         result, data = mail.fetch(mid_list[-1], "(RFC822)")
         try:
             raw_email = data[0][1].decode('utf-8')
@@ -143,13 +147,13 @@ def download_html(hospital, subject):
                 mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
                 mail.output_file.close()
                 pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf')
-                file_list.append(folder + filename + '.pdf')
+                file_name = folder + filename + '.pdf'
                 if os.path.exists(folder + 'email.html'):
                     os.remove(folder + 'email.html')
-        return file_list, subject, sender, l_time
+        return file_name, subject, sender, l_time
     except:
         log_exceptions(subject=subject)
-        return file_list, subject, sender, l_time
+        return file_name, subject, sender, l_time
 
 
 def get_insurer_and_process(subject, email_id):
@@ -184,7 +188,10 @@ def run_table_insert(subject, date, attach_path, email_id, completed):
     q = f"insert into run_table (`subject`, `date`, `attachment_path`, `email_id`, `completed`) values ('{subject}','{date}','{attach_path}','{email_id}','{completed}')"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
-        cur.execute(q)
+        try:
+            cur.execute(q)
+        except:
+            a = 1
         return True
 
 
@@ -198,6 +205,9 @@ def run_table_get():
 
 if __name__ == "__main__":
     a = get_from_query()
+    if isinstance(a, dict):
+        print(a)
+        exit()
     records = []
     run_no = get_run_no()
     for i in a:
@@ -205,7 +215,7 @@ if __name__ == "__main__":
         if not f1[0]:
             f1 = download_html('Max', i[2])
         records.append((i[0], i[2], f1))
-    pass
-    # for j in records:
-    #     run_table_insert('subject', 'date', 'attach_path', 'email_id', '')
+    for j in records:
+        subject, date, attach_path, email_id, completed = j[2][1], j[2][3], j[2][0], j[2][2], ''
+        run_table_insert(subject, date, attach_path, email_id, completed)
         # subprocess.run(["python", ins + "_" + ct + ".py", filepath, run_no, ins, ct, subject, l_time, hid])
