@@ -244,7 +244,7 @@ def insert_entry_if_sub_and_ltime_exist(subject, l_time):
 
 
 if __name__ == "__main__":
-    # a = download_pdf('Max', "MR ANIL KHERA")
+    a = download_pdf('Max', "MR ANIL KHERA")
     a = get_from_query()
     if isinstance(a, dict):
         print(a)
