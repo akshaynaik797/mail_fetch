@@ -195,12 +195,42 @@ def run_table_insert(subject, date, attach_path, email_id, completed):
         return True
 
 
-def run_table_get():
-    q, result = "select * from run_table where completed = ''", []
+def get_details():
+    q = "select * from run_table where completed = ''"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
         result = cur.execute(q).fetchall()
         return result
+
+
+def post_details(row_no, flag):
+    q = f"update run_table set completed = '{flag}' where row_no='{row_no}'"
+    with sqlite3.connect(dbname) as con:
+        cur = con.cursor()
+        result = cur.execute(q)
+
+
+def check_if_sub_and_ltime_exist(subject, l_time):
+    try:
+        subject = subject.replace("'", '')
+        with sqlite3.connect(dbname) as con:
+            xyz = 10
+            cur = con.cursor()
+            b = f"select * from updation_detail_log where emailsubject='{subject}' and date='{l_time}'"
+            cur.execute(b)
+            r = cur.fetchone()
+            if r is not None:
+                return True
+            return False
+    except:
+        False
+
+
+def insert_entry_if_sub_and_ltime_exist(subject, l_time):
+    q = f"update run_table set completed = 'Found in updation_detail_log' where subject='{subject}' and date='{l_time}'"
+    with sqlite3.connect(dbname) as con:
+        cur = con.cursor()
+        result = cur.execute(q)
 
 
 if __name__ == "__main__":
