@@ -35,6 +35,8 @@ def get_from_query():
 
 def download_pdf(hospital, subject):
     try:
+        if hospital is None:
+            hospital = "Max"
         file_name, sender, l_time = "", "", ""
         fromtime = datetime.now().strftime("%d-%b-%Y")
         totime = datetime.now() + timedelta(days=1)
@@ -48,8 +50,9 @@ def download_pdf(hospital, subject):
         mail = imaplib.IMAP4_SSL(server)
         mail.login(email_id, password)
         mail.select('inbox', readonly=True)
+        # first search in subject , make list then search in body, make list and merge list
         subject = subject.replace("\r", "").replace("\n", "")
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{subject}"))')
+        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{subject}"))')
         if data == [b'']:
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{subject}"))')
             if data == [b'']:
@@ -60,6 +63,7 @@ def download_pdf(hospital, subject):
         mid_list = data[0].split()
         if mid_list == []:
             return file_name, subject, sender
+        #process all id for single subject
         result, data = mail.fetch(mid_list[-1], "(RFC822)")
         try:
             raw_email = data[0][1].decode('utf-8')
@@ -220,10 +224,16 @@ def check_if_sub_and_ltime_exist(subject, l_time):
             cur.execute(b)
             r = cur.fetchone()
             if r is not None:
+                #check completed flag
+                #if flag = null or blank
+                # return false .. these entries will be passed to another function which will check if these entries exists in run_table ,
+                # whichever entry is matched in run_table will be put in a different log file(run_table_log_file)
+                #if flag = 'x' or 'X' or "D"
+                #make log of subject and msg is {subject} is already processed
                 return True
             return False
     except:
-        False
+        return False
 
 
 def insert_entry_if_sub_and_ltime_exist(subject, l_time):
@@ -234,6 +244,7 @@ def insert_entry_if_sub_and_ltime_exist(subject, l_time):
 
 
 if __name__ == "__main__":
+    # a = download_pdf('Max', "MR ANIL KHERA")
     a = get_from_query()
     if isinstance(a, dict):
         print(a)
@@ -247,5 +258,6 @@ if __name__ == "__main__":
         records.append((i[0], i[2], f1))
     for j in records:
         subject, date, attach_path, email_id, completed = j[2][1], j[2][3], j[2][0], j[2][2], ''
+        #insert in run_table if not exist in updation_Detail_log
         run_table_insert(subject, date, attach_path, email_id, completed)
         # subprocess.run(["python", ins + "_" + ct + ".py", filepath, run_no, ins, ct, subject, l_time, hid])
