@@ -93,11 +93,10 @@ def get_mail_id_list(hospital, result):
         temp_list = data[0].split()
         mail_id_list.extend(temp_list)
     mail_id_list = sorted(list(set(mail_id_list)))
-    return 1
+    return mail_id_list
 
 
-
-def download_pdf(hospital, mail_id_list):
+def download_pdf_and_html(hospital, mail_id_list):
     try:
         if hospital is None:
             hospital = "Max"
@@ -109,9 +108,79 @@ def download_pdf(hospital, mail_id_list):
             server, email_id, password, inbox = "imap.gmail.com", "mediclaim@inamdarhospital.org", "Mediclaim@2019", '"[Gmail]/Trash"'
         mail = imaplib.IMAP4_SSL(server)
         mail.login(email_id, password)
+        delete_id_list = []
+
         mail.select('inbox', readonly=True)
         for mid in mail_id_list:
+            try:
+                result, data = mail.fetch(mid, "(RFC822)")
+                if result != "OK":
+                    delete_id_list.append(mid)
+                    continue
+                try:
+                    raw_email = data[0][1].decode('utf-8')
+                except UnicodeDecodeError:
+                    try:
+                        raw_email = data[0][1].decode('ISO-8859-1')
+                    except UnicodeDecodeError:
+                        try:
+                            raw_email = data[0][1].decode('ascii')
+                        except UnicodeDecodeError:
+                            pass
+                email_message = email.message_from_string(raw_email)
+                subject = email_message['Subject']
+                l_time = email_message['Date']
+                l_time = date_parser.parse(ifutc_to_indian(l_time)).strftime('%d/%m/%Y %H:%M:%S')
+                if check_if_sub_and_ltime_exist(subject, l_time):
+                    continue
+                # temp = re.compile(r"(?<=\<).*(?=\>)").search(email_message['From'])
+                # if temp is not None:
+                #     sender = temp.group()
+                sender = email_message['From']
+                filename = ""
+                lowercase = string.ascii_lowercase
+                fp = ''.join(random.choice(lowercase) for i in range(6))
+                for mail.part in email_message.walk():
+                    filename = mail.part.get_filename()
+                    if filename is not None:
+                        #check for blacklist
+                        #if in blacklist
+                        #continue
+                        if validate_filename(filename) is False:
+                            continue
+                        att_path = os.path.join(folder, fp+filename)
+                        if not os.path.isfile(att_path):
+                            fp = open(att_path, 'wb')
+                            fp.write(mail.part.get_payload(decode=True))
+                            file_name = att_path
+                            fp.close()
+                if file_name == "" and filename == "":
+                    #code for html
+                    lowercase = string.ascii_lowercase
+                    filename = ''.join(random.choice(lowercase) for i in range(6))
+                    email_message = email.message_from_string(raw_email)
+                    for mail.part in email_message.walk():
+                        if mail.part.get_content_type() == "text/html" or mail.part.get_content_type() == "text/plain":
+                            mail.body = mail.part.get_payload(decode=True)
+                            mail.file_name = folder + 'email.html'
+                            mail.output_file = open(mail.file_name, 'w')
+                            mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
+                            mail.output_file.close()
+                            pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf')
+                            file_name = folder + filename + '.pdf'
+                            if os.path.exists(folder + 'email.html'):
+                                os.remove(folder + 'email.html')
+                #insert file_name, subject, sender, l_time in run table
+                run_table_insert(subject, l_time, file_name, sender, "")
+            except:
+                log_exceptions()
+
+
+        mail.select(inbox, readonly=True)
+        for mid in delete_id_list:
             result, data = mail.fetch(mid, "(RFC822)")
+            if result != "OK":
+                continue
             try:
                 raw_email = data[0][1].decode('utf-8')
             except UnicodeDecodeError:
@@ -126,26 +195,49 @@ def download_pdf(hospital, mail_id_list):
             subject = email_message['Subject']
             l_time = email_message['Date']
             l_time = date_parser.parse(ifutc_to_indian(l_time)).strftime('%d/%m/%Y %H:%M:%S')
-            #check if exists
-            temp = re.compile(r"(?<=\<).*(?=\>)").search(email_message['From'])
-            if temp is not None:
-                sender = temp.group()
+            if check_if_sub_and_ltime_exist(subject, l_time):
+                continue
+            # temp = re.compile(r"(?<=\<).*(?=\>)").search(email_message['From'])
+            # if temp is not None:
+            #     sender = temp.group()
+            sender = email_message['From']
             for mail.part in email_message.walk():
                 filename = mail.part.get_filename()
                 if filename is not None:
                     #check for blacklist
                     #if in blacklist
                     #continue
-                    att_path = os.path.join(folder, filename)
+                    if validate_filename(filename) is False:
+                        continue
+                    att_path = os.path.join(folder, fp+filename)
                     if not os.path.isfile(att_path):
                         fp = open(att_path, 'wb')
                         fp.write(mail.part.get_payload(decode=True))
                         file_name = att_path
                         fp.close()
-        return file_name, subject, sender, l_time
+            if file_name == "":
+                #code for html
+                lowercase = string.ascii_lowercase
+                filename = ''.join(random.choice(lowercase) for i in range(6))
+                email_message = email.message_from_string(raw_email)
+                for mail.part in email_message.walk():
+                    if mail.part.get_content_type() == "text/html" or mail.part.get_content_type() == "text/plain":
+                        mail.body = mail.part.get_payload(decode=True)
+                        mail.file_name = folder + 'email.html'
+                        mail.output_file = open(mail.file_name, 'w')
+                        mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
+                        mail.output_file.close()
+                        pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf')
+                        file_name = folder + filename + '.pdf'
+                        if os.path.exists(folder + 'email.html'):
+                            os.remove(folder + 'email.html')
+            #insert file_name, subject, sender, l_time in run table
+            run_table_insert(subject, l_time, file_name, sender, "")
+
+        return True
     except:
-        log_exceptions(subject=subject)
-        return file_name, subject, sender, l_time
+        log_exceptions(mid)
+        return False
 
 
 def download_html(hospital, subject):
@@ -242,9 +334,10 @@ def run_table_insert(subject, date, attach_path, email_id, completed):
         cur = con.cursor()
         try:
             cur.execute(q)
+            return True
         except:
-            a = 1
-        return True
+            log_exceptions(query=q)
+            return False
 
 
 def get_details():
@@ -264,21 +357,24 @@ def post_details(row_no, flag):
 
 def check_if_sub_and_ltime_exist(subject, l_time):
     try:
+        if subject is None:
+            return False
         subject = subject.replace("'", '')
         with sqlite3.connect(dbname) as con:
             xyz = 10
             cur = con.cursor()
-            b = f"select completed from updation_detail_log where emailsubject='{subject}' and date='{l_time}'"
+            b = f"select completed, mail_id from updation_detail_log where emailsubject='{subject}' and date='{l_time}'"
             cur.execute(b)
             r = cur.fetchone()
             if r is not None:
                 if r[0] == None:
-                    b = f"select completed from run_table where subject='{subject}' and date='{l_time}'"
+                    b = f"select completed, row_no from run_table where subject='{subject}' and date='{l_time}'"
                     cur.execute(b)
                     r1 = cur.fetchone()
                     if r1 is not None:
                         custom_log_data(filename="run_table", subject=subject, l_time=l_time, msg='found in run table')
                         return True
+                    return False
                 elif r[0] in ['x', 'X', "D"]:
                     custom_log_data(filename="updation_detail", subject=subject, l_time=l_time, flag=r[0], msg='found in table')
                     return True
@@ -302,24 +398,33 @@ def insert_entry_if_sub_and_ltime_exist(subject, l_time):
         result = cur.execute(q)
 
 
+def validate_filename(filename):
+    valid = [r"^.*.pdf$", r"^.*.htm$", r"^.*.html$"]
+    invalid = ['Gov']
+    for i in valid:
+        if not re.compile(i).fullmatch(filename):
+            return False
+        for j in invalid:
+            if j in filename:
+                return False
+        return True
 if __name__ == "__main__":
-    check_if_sub_and_ltime_exist("Suhani", "01/10/2020 16:29:11")
-    # a = download_pdf('Max', "MR ANIL KHERA")
-    # if isinstance(a, dict):
-    #     print(a)
-    #     exit()
-    # a = get_from_query()
-    # a = get_mail_id_list('Max', a)
-    a = [b'186', b'187', b'188', b'286', b'291', b'298', b'320', b'329', b'330', b'332', b'351', b'359', b'375', b'378', b'380', b'381', b'48304', b'48305', b'48306', b'48309', b'48317', b'48319', b'48324', b'48328', b'48330', b'48332', b'48333', b'48338', b'48344', b'48350', b'48356', b'48377', b'48378', b'48389', b'48393', b'48394', b'48397', b'48398', b'48407', b'48417', b'48424', b'48429', b'48451', b'48457', b'48463', b'48473', b'48481', b'48497', b'48525', b'48528', b'48537', b'48553', b'48555', b'48556', b'48557', b'48559', b'48568', b'48569', b'48571', b'48575', b'48576', b'48579', b'48582', b'48583', b'48590', b'48599', b'48600', b'48601', b'48603', b'48604', b'48606', b'48607', b'48616', b'48621', b'48624', b'48626', b'48629', b'48631', b'48633', b'48638', b'48650', b'48652', b'48660', b'48661', b'48664', b'48683', b'48685', b'48687', b'48689', b'48690', b'48698', b'48703', b'48704', b'48706']
-    records = []
-    run_no = get_run_no()
-    for i in a:
-        f1 = download_pdf('Max', i[2])
-        if not f1[0]:
-            f1 = download_html('Max', i[2])
-        records.append((i[0], i[2], f1))
-    for j in records:
-        subject, date, attach_path, email_id, completed = j[2][1], j[2][3], j[2][0], j[2][2], ''
+    a = get_from_query()
+    if isinstance(a, dict):
+        print(a)
+        exit()
+    b = get_mail_id_list('Max', a)
+    download_pdf_and_html('Max', b)
+    pass
+    # records = []
+    # run_no = get_run_no()
+    # for i in a:
+    #     f1 = download_pdf('Max', i[2])
+    #     if not f1[0]:
+    #         f1 = download_html('Max', i[2])
+    #     records.append((i[0], i[2], f1))
+    # for j in records:
+    #     subject, date, attach_path, email_id, completed = j[2][1], j[2][3], j[2][0], j[2][2], ''
         #insert in run_table if not exist in updation_Detail_log
-        run_table_insert(subject, date, attach_path, email_id, completed)
+        # run_table_insert(subject, date, attach_path, email_id, completed)
         # subprocess.run(["python", ins + "_" + ct + ".py", filepath, run_no, ins, ct, subject, l_time, hid])
