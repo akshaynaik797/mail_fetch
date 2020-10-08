@@ -1,11 +1,10 @@
 import email
 import imaplib
 import os
-import re
 import random
+import re
 import sqlite3
 import string
-import subprocess
 from datetime import datetime, timedelta
 
 import pdfkit
@@ -139,7 +138,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                 sender = email_message['From']
                 filename = ""
                 lowercase = string.ascii_lowercase
-                fp = ''.join(random.choice(lowercase) for i in range(6))
+                fp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S_")
                 for mail.part in email_message.walk():
                     filename = mail.part.get_filename()
                     if filename is not None:
@@ -329,6 +328,8 @@ def get_run_no():
 
 
 def run_table_insert(subject, date, attach_path, email_id, completed):
+    if subject is not None:
+        subject = subject.replace("'", "")
     q = f"insert into run_table (`subject`, `date`, `attachment_path`, `email_id`, `completed`) values ('{subject}','{date}','{attach_path}','{email_id}','{completed}')"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
