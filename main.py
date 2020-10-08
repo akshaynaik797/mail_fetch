@@ -139,7 +139,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                 sender = email_message['From']
                 filename = ""
                 lowercase = string.ascii_lowercase
-                date_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S_")
+                date_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f_")
                 for mail.part in email_message.walk():
                     filename = mail.part.get_filename()
                     if filename is not None:
@@ -206,7 +206,7 @@ def download_pdf_and_html(hospital, mail_id_list):
             # if temp is not None:
             #     sender = temp.group()
             sender = email_message['From']
-            date_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S_")
+            date_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f_")
             for mail.part in email_message.walk():
                 filename = mail.part.get_filename()
                 if filename is not None:
