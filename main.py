@@ -1,10 +1,11 @@
 import email
 import imaplib
 import os
-import random
 import re
+import random
 import sqlite3
 import string
+import subprocess
 from datetime import datetime, timedelta
 
 import pdfkit
@@ -147,7 +148,12 @@ def download_pdf_and_html(hospital, mail_id_list):
                         #continue
                         if validate_filename(filename) is False:
                             continue
-                        att_path = os.path.join(folder, date_tag+filename)
+                        try:
+                            att_path = ""
+                            att_path = os.path.join(folder, date_tag+filename)
+                        except TypeError:
+                            zz = 1
+                            att_path = os.path.join(folder, filename)
                         if not os.path.isfile(att_path):
                             fp = open(att_path, 'wb')
                             fp.write(mail.part.get_payload(decode=True))
@@ -200,6 +206,7 @@ def download_pdf_and_html(hospital, mail_id_list):
             # if temp is not None:
             #     sender = temp.group()
             sender = email_message['From']
+            date_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S_")
             for mail.part in email_message.walk():
                 filename = mail.part.get_filename()
                 if filename is not None:
@@ -208,7 +215,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                     #continue
                     if validate_filename(filename) is False:
                         continue
-                    att_path = os.path.join(folder, fp+filename)
+                    att_path = os.path.join(folder, date_tag+filename)
                     if not os.path.isfile(att_path):
                         fp = open(att_path, 'wb')
                         fp.write(mail.part.get_payload(decode=True))
