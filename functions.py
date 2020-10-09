@@ -177,7 +177,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                             if os.path.exists(folder + 'email.html'):
                                 os.remove(folder + 'email.html')
                 #insert file_name, subject, sender, l_time in run table
-                run_table_insert(subject, l_time, file_name, sender, "", mid)
+                run_table_insert(subject, l_time, file_name, sender, "", int(mid))
             except:
                 log_exceptions()
 
@@ -239,11 +239,11 @@ def download_pdf_and_html(hospital, mail_id_list):
                         if os.path.exists(folder + 'email.html'):
                             os.remove(folder + 'email.html')
             #insert file_name, subject, sender, l_time in run table
-            run_table_insert(subject, l_time, file_name, sender, "", mid)
+            run_table_insert(subject, l_time, file_name, sender, "", int(mid))
 
         return True
     except:
-        log_exceptions(mid)
+        log_exceptions(int(mid))
         return False
 
 
