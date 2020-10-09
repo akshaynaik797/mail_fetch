@@ -1,6 +1,5 @@
-a = [1, 2, 3]
-b = [11, 22]
-d = {}
-for i, j in zip(a, b):
-    d[i] = j
-pass
+import pdfkit
+
+path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+pdfkit.from_file('email.html', 'dsf.pdf', configuration=config)

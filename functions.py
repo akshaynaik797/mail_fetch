@@ -14,6 +14,8 @@ from dateutil import parser as date_parser
 from cust_time_functs import ifutc_to_indian
 from make_log import log_exceptions, custom_log_data
 
+path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
 folder, dbname = "files/", "database1.db"
 if not os.path.exists(folder):
@@ -149,6 +151,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                         #if in blacklist
                         #continue
                         if validate_filename(filename) is False:
+                            filename = ""
                             continue
                         try:
                             att_path = ""
@@ -173,7 +176,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                             mail.output_file = open(mail.file_name, 'w')
                             mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
                             mail.output_file.close()
-                            pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf')
+                            pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf', configuration=config)
                             file_name = folder + filename + '.pdf'
                             if os.path.exists(folder + 'email.html'):
                                 os.remove(folder + 'email.html')
@@ -235,7 +238,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                         mail.output_file = open(mail.file_name, 'w')
                         mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
                         mail.output_file.close()
-                        pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf')
+                        pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf', configuration=config)
                         file_name = folder + filename + '.pdf'
                         if os.path.exists(folder + 'email.html'):
                             os.remove(folder + 'email.html')
@@ -298,7 +301,7 @@ def download_html(hospital, subject):
                 mail.output_file = open(mail.file_name, 'w')
                 mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
                 mail.output_file.close()
-                pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf')
+                pdfkit.from_file(folder + 'email.html', folder + filename + '.pdf', configuration=config)
                 file_name = folder + filename + '.pdf'
                 if os.path.exists(folder + 'email.html'):
                     os.remove(folder + 'email.html')
