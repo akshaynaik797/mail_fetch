@@ -5,7 +5,6 @@ import re
 import random
 import sqlite3
 import string
-import subprocess
 from datetime import datetime, timedelta
 
 import pdfkit
@@ -15,7 +14,6 @@ from dateutil import parser as date_parser
 from cust_time_functs import ifutc_to_indian
 from make_log import log_exceptions, custom_log_data
 
-# from config import mydb
 
 folder, dbname = "files/", "database1.db"
 if not os.path.exists(folder):
@@ -425,7 +423,6 @@ def validate_filename(filename):
 
 
 if __name__ == "__main__":
-    a = get_details()
     a = get_from_query()
     if isinstance(a, dict):
         print(a)

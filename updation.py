@@ -30,12 +30,6 @@ for i, j in enumerate(sys.argv):
     for k in badchars:
         sys.argv[i] = j.replace(k, '')
 
-with open('updation_log.log', 'a+', encoding='utf-8') as fp:
-    entry = ('===================================================================================================\n'
-                 f'{str(akdatetime.now())}\n'
-                 # '---------------------------------------------------------------------------------------------------\n'
-                 f'{str(sys.argv)}\n')
-    fp.write(entry)
 
 global_lock = threading.Lock()
 
@@ -161,10 +155,6 @@ with sqlite3.connect("database1.db") as con:
             q="UPDATE "+table+" SET "+col+ " = '"+val+"' WHERE row_no = "+row_no
 
         print(q)
-        file = open("sample.txt", "a", encoding='utf-8')
-        file.write("\n")
-        file.write(q)
-        file.close()
         try:
             cur.execute(q)
         except:
