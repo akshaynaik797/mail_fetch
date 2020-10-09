@@ -332,10 +332,11 @@ def get_run_no():
     return str(run_no)
 
 
-def run_table_insert(subject, date, attach_path, email_id, completed):
+def run_table_insert(subject, date, attach_path, email_id, completed, mail_id):
     if subject is not None:
         subject = subject.replace("'", "")
-    q = f"insert into run_table (`subject`, `date`, `attachment_path`, `email_id`, `completed`) values ('{subject}','{date}','{attach_path}','{email_id}','{completed}')"
+    q = f"insert into run_table (`subject`, `date`, `attachment_path`, `email_id`, `completed`, `mail_id`) values " \
+        f"('{subject}','{date}','{attach_path}','{email_id}','{completed}','{mail_id}')"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
         try:
@@ -420,6 +421,16 @@ def validate_filename(filename):
             if j in filename:
                 return False
         return True
+
+
+def process_row(row_no, ins, process):
+    run_no = get_run_no()
+    q = f"select attachement_path, subject, date from run_table where row_no='{row_no}'"
+    with sqlite3.connect(dbname) as con:
+        cur = con.cursor()
+        result = cur.execute(q)
+    #subprocess.run(["python", ins + "_" + process + ".py", filepath, run_no, ins, process, subject, l_time, hosp_id])
+    return 1
 
 
 if __name__ == "__main__":
