@@ -7,12 +7,18 @@ dbname = "database1.db"
 
 @app.route('/get_details')
 def get_details():
-    result = ""
+    datadict, result, fields = dict(), "", ["row_no", "subject", "date", "attachment", "email_id", "completed"]
     q = "select * from run_table where completed = ''"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
         result = cur.execute(q).fetchall()
-    return jsonify(result)
+        for i, j in enumerate(result):
+            tempdict = {}
+            for key, value in zip(fields, j):
+                    tempdict[key] = value
+            datadict[i] = tempdict
+        return jsonify(datadict)
+
 
 
 @app.route('/post_details',methods=["POST"])

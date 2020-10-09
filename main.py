@@ -349,10 +349,16 @@ def run_table_insert(subject, date, attach_path, email_id, completed):
 
 
 def get_details():
+    datadict, result, fields = dict(), "", ["row_no", "subject", "date", "attachment", "email_id", "completed"]
     q = "select * from run_table where completed = ''"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
         result = cur.execute(q).fetchall()
+        for i, j in enumerate(result):
+            tempdict = {}
+            for key, value in zip(fields, j):
+                    tempdict[key] = value
+            datadict[i] = tempdict
         return result
 
 
@@ -419,6 +425,7 @@ def validate_filename(filename):
 
 
 if __name__ == "__main__":
+    a = get_details()
     a = get_from_query()
     if isinstance(a, dict):
         print(a)
