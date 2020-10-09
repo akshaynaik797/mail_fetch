@@ -32,67 +32,70 @@ def get_from_query():
 
 
 def get_mail_id_list(hospital, result):
-    if hospital is None:
-        hospital = "Max"
-    fromtime = datetime.now().strftime("%d-%b-%Y")
-    totime = datetime.now() + timedelta(days=1)
-    totime = totime.strftime("%d-%b-%Y")
+    try:
+        if hospital is None:
+            hospital = "Max"
+        fromtime = datetime.now().strftime("%d-%b-%Y")
+        totime = datetime.now() + timedelta(days=1)
+        totime = totime.strftime("%d-%b-%Y")
 
-    server, email_id, password, inbox = "", "", "", ""
-    if 'Max' in hospital:
-        server, email_id, password, inbox = "outlook.office365.com", "Tpappg@maxhealthcare.com", "Sept@2020", '"Deleted Items"'
-    elif 'inamdar' in hospital:
-        server, email_id, password, inbox = "imap.gmail.com", "mediclaim@inamdarhospital.org", "Mediclaim@2019", '"[Gmail]/Trash"'
-    mail = imaplib.IMAP4_SSL(server)
-    mail.login(email_id, password)
-    mail_id_list = []
-    mail.select('inbox', readonly=True)
+        server, email_id, password, inbox = "", "", "", ""
+        if 'Max' in hospital:
+            server, email_id, password, inbox = "outlook.office365.com", "Tpappg@maxhealthcare.com", "Sept@2020", '"Deleted Items"'
+        elif 'inamdar' in hospital:
+            server, email_id, password, inbox = "imap.gmail.com", "mediclaim@inamdarhospital.org", "Mediclaim@2019", '"[Gmail]/Trash"'
+        mail = imaplib.IMAP4_SSL(server)
+        mail.login(email_id, password)
+        mail_id_list = []
+        mail.select('inbox', readonly=True)
 
-    for i in result:
-        p_name, temp_list = i[2], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
-    for i in result:
-        p_name, temp_list = i[2], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
-    for i in result:
-        pre_id, temp_list = i[1], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
-    for i in result:
-        pre_id, temp_list = i[1], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
+        for i in result:
+            p_name, temp_list = i[2], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
+        for i in result:
+            p_name, temp_list = i[2], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
+        for i in result:
+            pre_id, temp_list = i[1], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
+        for i in result:
+            pre_id, temp_list = i[1], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
 
-    mail.select(inbox, readonly=True)
-    for i in result:
-        p_name, temp_list = i[2], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
-    for i in result:
-        p_name, temp_list = i[2], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
-    for i in result:
-        pre_id, temp_list = i[1], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
-    for i in result:
-        pre_id, temp_list = i[1], []
-        type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
-        temp_list = data[0].split()
-        mail_id_list.extend(temp_list)
-    mail_id_list = sorted(list(set(mail_id_list)))
-    return mail_id_list
-
+        mail.select(inbox, readonly=True)
+        for i in result:
+            p_name, temp_list = i[2], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
+        for i in result:
+            p_name, temp_list = i[2], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
+        for i in result:
+            pre_id, temp_list = i[1], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
+        for i in result:
+            pre_id, temp_list = i[1], []
+            type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
+            temp_list = data[0].split()
+            mail_id_list.extend(temp_list)
+        mail_id_list = sorted(list(set(mail_id_list)))
+        return mail_id_list
+    except:
+        log_exceptions()
+        return []
 
 def download_pdf_and_html(hospital, mail_id_list):
     try:
@@ -423,7 +426,7 @@ def validate_filename(filename):
         return True
 
 
-def process_row(row_no, ins, process):
+def process_row(row_no, ins, process, hospital):
     run_no = get_run_no()
     q = f"select attachement_path, subject, date from run_table where row_no='{row_no}'"
     with sqlite3.connect(dbname) as con:
@@ -437,7 +440,6 @@ if __name__ == "__main__":
     a = get_from_query()
     if isinstance(a, dict):
         print(a)
-        exit()
     b = get_mail_id_list('Max', a)
     download_pdf_and_html('Max', b)
     pass
