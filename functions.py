@@ -97,6 +97,7 @@ def get_mail_id_list(hospital, result):
         log_exceptions()
         return []
 
+
 def download_pdf_and_html(hospital, mail_id_list):
     try:
         if hospital is None:
@@ -160,7 +161,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                             fp.write(mail.part.get_payload(decode=True))
                             file_name = att_path
                             fp.close()
-                if file_name == "" and filename == "":
+                if file_name == "" and filename == "" or filename == None:
                     #code for html
                     lowercase = string.ascii_lowercase
                     filename = ''.join(random.choice(lowercase) for i in range(6))
@@ -437,11 +438,11 @@ def process_row(row_no, ins, process, hospital):
 
 
 if __name__ == "__main__":
-    a = get_from_query()
-    if isinstance(a, dict):
-        print(a)
-    b = get_mail_id_list('Max', a)
-    download_pdf_and_html('Max', b)
+    # a = get_from_query()
+    # if isinstance(a, dict):
+    #     print(a)
+    # b = get_mail_id_list('Max', a)
+    download_pdf_and_html('Max', [b'50238'])
     pass
     # records = []
     # run_no = get_run_no()
