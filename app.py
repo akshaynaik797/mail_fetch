@@ -254,7 +254,7 @@ def process_subject():
 @app.route('/run_loop', methods=["GET"])
 def run_loop():
     interval = request.args.get('interval')
-    job = scheduler.add_job(run_process, 'interval', minutes=interval, args=[interval])
+    job = scheduler.add_job(run_process, 'interval', minutes=int(interval), args=[interval])
     scheduler.start()
     return "running"
 

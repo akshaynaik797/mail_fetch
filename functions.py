@@ -385,7 +385,7 @@ def check_if_sub_and_ltime_exist(subject, l_time):
             cur.execute(b)
             r = cur.fetchone()
             if r is not None:
-                if r[0] == None:
+                if r[0] == None or r[0] == 'D':
                     b = f"select completed, row_no from run_table where subject='{subject}' and date='{l_time}'"
                     cur.execute(b)
                     r1 = cur.fetchone()
@@ -393,7 +393,7 @@ def check_if_sub_and_ltime_exist(subject, l_time):
                         custom_log_data(filename="run_table", subject=subject, l_time=l_time, msg='found in run table')
                         return True
                     return False
-                elif r[0] in ['x', 'X', "D"]:
+                elif r[0] in ['x', 'X']:
                     custom_log_data(filename="updation_detail", subject=subject, l_time=l_time, flag=r[0], msg='found in table')
                     return True
             else:
@@ -440,9 +440,10 @@ def process_row(row_no, ins, process, hospital):
 
 def run_process(interval):
     try:
-        print(f"running every {interval} seconds.")
+        print(f"running every {interval} minutes.")
         a = get_from_query()
         if isinstance(a, dict):
+            print("api failed")
             raise Exception
         print("got api response")
         b = get_mail_id_list('Max', a)

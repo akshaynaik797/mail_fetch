@@ -1,26 +1,4 @@
-from flask import Flask
-
-from apscheduler.schedulers.background import BackgroundScheduler
-
-
-app = Flask(__name__)
-
-def test_job(name):
-    try:
-        print('I am working...'+name)
-        a + 1
-    except:
-        print("Errr")
-
-scheduler = BackgroundScheduler()
-
-
-
-@app.route('/get_state', methods=["GET"])
-def get_state():
-    job = scheduler.add_job(test_job, 'interval', minutes=1, args=['sadf'])
-    scheduler.start()
-    return f"state"
-
-if __name__ == '__main__':
-    app.run()
+import os
+fp = 'files/asd.pdf'
+fpn = os.path.splitext(fp)[0] + '_1' + os.path.splitext(fp)[1]
+pass
