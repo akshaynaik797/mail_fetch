@@ -5,6 +5,7 @@ import re
 import random
 import sqlite3
 import string
+import subprocess
 from datetime import datetime, timedelta
 
 import pdfkit
@@ -463,13 +464,18 @@ def validate_filename(filename):
 
 
 def process_row(row_no, ins, process, hospital):
-    run_no = get_run_no()
-    q = f"select attachement_path, subject, date from run_table where row_no='{row_no}'"
-    with sqlite3.connect(dbname) as con:
-        cur = con.cursor()
-        result = cur.execute(q)
-    #subprocess.run(["python", ins + "_" + process + ".py", filepath, run_no, ins, process, subject, l_time, hosp_id])
-    return 1
+    try:
+        run_no = get_run_no()
+        q = f"select attachement_path, subject, date from run_table where row_no='{row_no}'"
+        with sqlite3.connect(dbname) as con:
+            cur = con.cursor()
+            result = cur.execute(q).fetchone()
+            subprocess.run(["python", ins + "_" + process + ".py", result[0], run_no, ins, process, result[1],
+                            result[2], hospital])
+            return True
+    except:
+        log_exceptions(row_no)
+        return False
 
 
 def run_process(interval):

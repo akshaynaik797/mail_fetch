@@ -229,9 +229,10 @@ def process_records():
                                              request.json['hospital'],
             # processing logic here
             process_row(row_no, ins, process, hospital)
-        except:
+            return 'True'
+        except Exception as e:
             log_exceptions()
-    return jsonify(row_no, ins, process)
+            return jsonify(e)
 
 
 @app.route('/process_subject', methods=["POST"])
