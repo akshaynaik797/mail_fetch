@@ -1,16 +1,5 @@
-from flask import Flask
+import pdfkit
 
-from apscheduler.schedulers.background import BackgroundScheduler
-
-
-app = Flask(__name__)
-
-def test_job():
-    print('I am working...')
-
-scheduler = BackgroundScheduler()
-job = scheduler.add_job(test_job, 'interval', minutes=1)
-scheduler.start()
-
-if __name__ == '__main__':
-    app.run()
+path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+pdfkit.from_file('email.html', 'dsf.pdf', configuration=config)
