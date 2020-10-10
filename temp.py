@@ -1,4 +1,7 @@
 import os
-fp = 'files/asd.pdf'
-fpn = os.path.splitext(fp)[0] + '_1' + os.path.splitext(fp)[1]
+import random
+
+file_id = '_'+str(random.randint(999, 9999))
+filename = 'files/asd.pdf'
+filename = os.path.splitext(filename)[0] + file_id + os.path.splitext(filename)[1]
 pass

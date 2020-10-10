@@ -116,6 +116,7 @@ def download_pdf_and_html(hospital, mail_id_list):
         for mid in mail_id_list:
             try:
                 result, data = mail.fetch(mid, "(RFC822)")
+                file_id = random.randint(999, 9999)
                 if result != "OK":
                     delete_id_list.append(mid)
                     continue
@@ -140,8 +141,6 @@ def download_pdf_and_html(hospital, mail_id_list):
                 #     sender = temp.group()
                 sender = email_message['From']
                 filename = ""
-                lowercase = string.ascii_lowercase
-                date_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f_")
                 for mail.part in email_message.walk():
                     filename = mail.part.get_filename()
                     if filename is not None:
@@ -153,7 +152,8 @@ def download_pdf_and_html(hospital, mail_id_list):
                             continue
                         try:
                             att_path = ""
-                            att_path = os.path.join(folder, date_tag+filename)
+                            filename = os.path.splitext(filename)[0] + file_id + os.path.splitext(filename)[1]
+                            att_path = os.path.join(folder, filename)
                         except TypeError:
                             zz = 1
                             att_path = os.path.join(folder, filename)
@@ -187,6 +187,7 @@ def download_pdf_and_html(hospital, mail_id_list):
         mail.select(inbox, readonly=True)
         for mid in delete_id_list:
             result, data = mail.fetch(mid, "(RFC822)")
+            file_id = random.randint(999, 9999)
             if result != "OK":
                 continue
             try:
@@ -209,7 +210,6 @@ def download_pdf_and_html(hospital, mail_id_list):
             # if temp is not None:
             #     sender = temp.group()
             sender = email_message['From']
-            date_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f_")
             for mail.part in email_message.walk():
                 filename = mail.part.get_filename()
                 if filename is not None:
@@ -218,7 +218,8 @@ def download_pdf_and_html(hospital, mail_id_list):
                     #continue
                     if validate_filename(filename) is False:
                         continue
-                    att_path = os.path.join(folder, date_tag+filename)
+                    filename = os.path.splitext(filename)[0] + file_id + os.path.splitext(filename)[1]
+                    att_path = os.path.join(folder, filename)
                     if not os.path.isfile(att_path):
                         fp = open(att_path, 'wb')
                         fp.write(mail.part.get_payload(decode=True))
