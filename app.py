@@ -3,13 +3,15 @@ from time import sleep
 
 import requests
 from flask import Flask, request, jsonify
+from apscheduler.schedulers.background import BackgroundScheduler
 
-from functions import get_from_query, get_mail_id_list, download_pdf_and_html, process_row
+from functions import run_process, process_row
 from make_log import log_exceptions
+from settings import dbname
 
 app = Flask(__name__)
-
-dbname, state = "database1.db", "running"
+scheduler = BackgroundScheduler()
+state = "running"
 
 
 @app.route("/api/getupdatedetailsLog", methods=["POST"])
@@ -251,27 +253,10 @@ def process_subject():
 
 @app.route('/run_loop', methods=["GET"])
 def run_loop():
-    global state
     interval = request.args.get('interval')
-    while 1:
-        if state != 'stop':
-            print(f"running every {interval} seconds.")
-            try:
-                #all steps here
-                a = get_from_query()
-                if isinstance(a, dict):
-                    raise Exception
-                print("got api response")
-                b = get_mail_id_list('Max', a)
-                print("got id list")
-                download_pdf_and_html('Max', b)
-                print("downloaded files and save data in db")
-            except:
-                log_exceptions()
-                pass
-            sleep(int(interval))
-        else:
-            return f"stopped becuase state={state}"
+    job = scheduler.add_job(run_process, 'interval', minutes=interval, args=[interval])
+    scheduler.start()
+    return "running"
 
 
 @app.route('/stop_loop', methods=["GET"])

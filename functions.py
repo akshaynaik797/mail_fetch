@@ -11,13 +11,11 @@ import pdfkit
 import requests
 from dateutil import parser as date_parser
 
+
 from cust_time_functs import ifutc_to_indian
 from make_log import log_exceptions, custom_log_data
+from settings import dbname, folder, config
 
-path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
-config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-
-folder, dbname = "files/", "database1.db"
 if not os.path.exists(folder):
     os.mkdir(folder)
 
@@ -438,6 +436,21 @@ def process_row(row_no, ins, process, hospital):
         result = cur.execute(q)
     #subprocess.run(["python", ins + "_" + process + ".py", filepath, run_no, ins, process, subject, l_time, hosp_id])
     return 1
+
+
+def run_process(interval):
+    try:
+        print(f"running every {interval} seconds.")
+        a = get_from_query()
+        if isinstance(a, dict):
+            raise Exception
+        print("got api response")
+        b = get_mail_id_list('Max', a)
+        print("got id list")
+        download_pdf_and_html('Max', b)
+        print("downloaded files and save data in db")
+    except:
+        log_exceptions()
 
 
 if __name__ == "__main__":
