@@ -1,13 +1,14 @@
+import os
 import sqlite3
 from time import sleep
 
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, abort
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from functions import run_process, process_row
 from make_log import log_exceptions
-from settings import dbname
+from settings import dbname, folder
 
 app = Flask(__name__)
 scheduler = BackgroundScheduler()
@@ -196,6 +197,7 @@ def get_details():
             for key, value in zip(fields, j):
                 tempdict[key] = value
             datadict[i] = tempdict
+            datadict[i]['attachment'] = request.url_root + 'get_file/' + os.path.split(datadict[i]['attachment'])[1]
         return jsonify(datadict)
 
 
@@ -269,8 +271,17 @@ def stop_loop():
 @app.route('/get_state', methods=["GET"])
 def get_state():
     global state
-    return f"state = {state}"
+    return request.url
 
+
+@app.route('/get_file/<filename>', methods=["GET"])
+def get_file(filename):
+    try:
+        # return request.url
+        return send_from_directory(folder, filename=filename, as_attachment=True)
+    except FileNotFoundError:
+        abort(404)
+    return request.url_root
 
 if __name__ == '__main__':
     app.run()
