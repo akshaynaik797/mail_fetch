@@ -187,7 +187,9 @@ def getupdatelog():
 
 @app.route('/get_details')
 def get_details():
-    datadict, result, fields = dict(), "", ["row_no", "subject", "date", "attachment", "email_id", "completed"]
+    datadict = dict()
+    datalist, result, fields = list(), "", ["row_no", "subject", "date", "attachment", "email_id", "completed",
+                                            "mail_id", "p_name", "ref_no"]
     q = "select * from run_table where completed = ''"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
@@ -196,8 +198,9 @@ def get_details():
             tempdict = {}
             for key, value in zip(fields, j):
                 tempdict[key] = value
-            datadict[i] = tempdict
-            datadict[i]['attachment'] = request.url_root + 'get_file/' + os.path.split(datadict[i]['attachment'])[1]
+            datalist.append(tempdict)
+            datalist[-1]['attachment'] = request.url_root + 'get_file/' + os.path.split(datalist[-1]['attachment'])[1]
+        datadict['data'] = datalist
         return jsonify(datadict)
 
 

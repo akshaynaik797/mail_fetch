@@ -499,7 +499,7 @@ if __name__ == "__main__":
     # if isinstance(a, dict):
     #     print(a)
     # b = get_mail_id_list('Max', a)
-    download_pdf_and_html('Max', [(b'50238', 'pname', 'refno')])
+    download_pdf_and_html('Max', [(b'50228', 'pname', 'refno')])
     pass
     # records = []
     # run_no = get_run_no()
