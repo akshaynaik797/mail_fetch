@@ -55,14 +55,14 @@ def get_mail_id_list(hospital, result):
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name'))
+                t_list.append((j, i[2], 'p_name', i[0]))
             mail_id_list.extend(t_list)
         for i in result:
             p_name, temp_list, t_list = i[2], [], []
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name'))
+                t_list.append((j, i[2], 'p_name', i[0]))
             mail_id_list.extend(t_list)
         for i in result:
             pre_id, temp_list, t_list = i[1], [], []
@@ -71,7 +71,7 @@ def get_mail_id_list(hospital, result):
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id'))
+                t_list.append((j, i[1], 'pre_id', i[0]))
             mail_id_list.extend(t_list)
         for i in result:
             pre_id, temp_list, t_list = i[1], [], []
@@ -80,7 +80,7 @@ def get_mail_id_list(hospital, result):
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id'))
+                t_list.append((j, i[1], 'pre_id', i[0]))
             mail_id_list.extend(t_list)
         mail.select(inbox, readonly=True)
         for i in result:
@@ -88,14 +88,14 @@ def get_mail_id_list(hospital, result):
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name'))
+                t_list.append((j, i[2], 'p_name', i[0]))
             mail_id_list.extend(t_list)
         for i in result:
             p_name, temp_list, t_list = i[2], [], []
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name'))
+                t_list.append((j, i[2], 'p_name', i[0]))
             mail_id_list.extend(t_list)
         for i in result:
             pre_id, temp_list, t_list = i[1], [], []
@@ -104,7 +104,7 @@ def get_mail_id_list(hospital, result):
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id'))
+                t_list.append((j, i[1], 'pre_id', i[0]))
             mail_id_list.extend(t_list)
         for i in result:
             pre_id, temp_list, t_list = i[1], [], []
@@ -113,11 +113,12 @@ def get_mail_id_list(hospital, result):
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id'))
+                t_list.append((j, i[1], 'pre_id', i[0]))
             mail_id_list.extend(t_list)
+
         tempdict, templist = dict(), list()
-        for i, j, k in mail_id_list:
-            tempdict[str(i) + '_' + str(k)] = {"identity": j, "i_name": k}
+        for i, j, k, l in mail_id_list:
+            tempdict[str(i) + '_' + str(k)] = {"identity": j, "i_name": k, "p_id": l}
             templist.append(i)
         templist = list(set(templist))
         final_mail_id_list = []
@@ -125,9 +126,11 @@ def get_mail_id_list(hospital, result):
             j, k = "", ""
             if str(i) + '_p_name' in tempdict:
                 j = tempdict[str(i) + '_p_name']['identity']
+                l = tempdict[str(i) + '_p_name']['p_id']
             if str(i) + '_pre_id' in tempdict:
                 k = tempdict[str(i) + '_pre_id']['identity']
-            final_mail_id_list.append((i, j, k))
+                l = tempdict[str(i) + '_p_name']['p_id']
+            final_mail_id_list.append((i, j, k, l))
         return final_mail_id_list
     except:
         log_exceptions()
@@ -149,7 +152,7 @@ def download_pdf_and_html(hospital, mail_id_list):
         delete_id_list = []
 
         mail.select('inbox', readonly=True)
-        for mid, p_name, ref_no in mail_id_list:
+        for mid, p_name, pre_id, ref_no in mail_id_list:
             try:
                 result, data = mail.fetch(mid, "(RFC822)")
                 file_id = str(random.randint(999, 9999))
@@ -213,13 +216,13 @@ def download_pdf_and_html(hospital, mail_id_list):
                             if os.path.exists(folder + 'email.html'):
                                 os.remove(folder + 'email.html')
                 #insert file_name, subject, sender, l_time in run table
-                run_table_insert(subject, l_time, file_name, sender, "", int(mid), p_name, ref_no)
+                run_table_insert(subject, l_time, file_name, sender, "", int(mid), p_name, pre_id, ref_no)
             except:
                 log_exceptions()
 
 
         mail.select(inbox, readonly=True)
-        for mid, p_name, ref_no in delete_id_list:
+        for mid, p_name, pre_id, ref_no in delete_id_list:
             result, data = mail.fetch(mid, "(RFC822)")
             file_id = str(random.randint(999, 9999))
             if result != "OK":
@@ -276,7 +279,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                         if os.path.exists(folder + 'email.html'):
                             os.remove(folder + 'email.html')
             #insert file_name, subject, sender, l_time in run table
-            run_table_insert(subject, l_time, file_name, sender, "", int(mid), p_name, ref_no)
+            run_table_insert(subject, l_time, file_name, sender, "", int(mid), p_name, pre_id, ref_no)
         return True
     except:
         log_exceptions()
@@ -371,7 +374,7 @@ def get_run_no():
     return str(run_no)
 
 
-def run_table_insert(subject, date, attach_path, email_id, completed, mail_id, p_name, ref_no):
+def run_table_insert(subject, date, attach_path, email_id, completed, mail_id, p_name, pre_id, ref_no):
     if subject is not None:
         subject = subject.replace("'", "")
     q = f"insert into run_table " \

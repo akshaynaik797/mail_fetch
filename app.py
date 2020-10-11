@@ -189,7 +189,7 @@ def getupdatelog():
 def get_details():
     datadict = dict()
     datalist, result, fields = list(), "", ["row_no", "subject", "date", "attachment", "email_id", "completed",
-                                            "mail_id", "p_name", "ref_no"]
+                                            "mail_id", "p_name", "p_id"]
     q = "select * from run_table where completed = ''"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
