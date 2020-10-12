@@ -1,12 +1,14 @@
 import os
 import sqlite3
-from time import sleep
+import subprocess
 
 import requests
+import threading
+
 from flask import Flask, request, jsonify, send_from_directory, abort
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from functions import run_process, process_row
+from functions import run_process, process_row, log_api_data
 from make_log import log_exceptions
 from settings import dbname, folder
 from flask_cors import CORS, cross_origin
@@ -15,6 +17,262 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 scheduler = BackgroundScheduler()
 state = "running"
+sem = threading.Semaphore()
+
+
+@app.route("/api/postUpdateDetailsLogs", methods=["POST"])
+def postUpdateLog():
+    row_no, subject, date, attachment_path, email_id, completed, mail_id, \
+    p_name, pre_id, ref_no = "", "", "", "", "", "", "", "", "", ""
+
+    if request.method != 'POST':
+        return jsonify(
+            {
+                'status': 'failed',
+                'message': 'inavlid request method.Only Post method Allowed'
+            }
+        )
+    if request.json.get('row_no') != None:
+        row_no = request.json['row_no']
+    if request.json.get('completed') != None:
+        completed = request.json['completed']  # completd = D
+    if completed == 'D':
+        with sqlite3.connect("database1.db") as con:
+            cur = con.cursor()
+            query = f'update run_table set completed= "D" where row_no={row_no};'
+            print(query)
+            log_api_data('query', query)
+            cur.execute(query)
+            apimessage = 'Record successfully updated, and API not called'
+            return jsonify({
+                'status': 'success',
+                'message': apimessage})
+
+    with sqlite3.connect("database1.db") as con:
+        cur = con.cursor()
+        q = f'select row_no, subject, date, attachment_path, email_id, completed, mail_id, p_name, pre_id, ref_no from ' \
+            f'run_table where row_no={row_no}'
+        print(q)
+        log_api_data('q', q)
+        cur.execute(q)
+        r = cur.fetchone()
+        hosid = 'Max PPT'
+
+    if request.json.get('row_no') != None:
+        row_no = request.json['row_no']
+
+    if request.json.get('subject') != None:
+        subject = request.json['subject']
+
+    if request.json.get('date') != None:
+        date = request.json['date']
+
+    if request.json.get('attachment_path') != None:
+        attachment_path = request.json['attachment_path']
+
+    if request.json.get('email_id') != None:
+        email_id = request.json['email_id']
+
+    if request.json.get('completed') != None:
+        completed = request.json['completed']
+
+    if request.json.get('mail_id') != None:
+        mail_id = request.json['mail_id']
+
+    if request.json.get('p_name') != None:
+        p_name = request.json['p_name']
+
+    if request.json.get('pre_id') != None:
+        pre_id = request.json['pre_id']
+
+    if request.json.get('ref_no') != None:
+        ref_no = request.json['ref_no']
+
+
+
+    if (r is not None
+            and row_no == r[0]
+            and subject == r[1]
+            and date == r[2]
+            and attachment_path == r[3]
+            and email_id == r[4]
+            and completed == r[5]
+            and mail_id == r[6]
+            and p_name == r[7]
+            and pre_id == r[8]
+            and ref_no == r[9]):
+        char = 'X'
+    else:
+        char = 'x'
+
+    if row_no == '':
+        return jsonify(
+            {
+                'status': 'failed',
+                'message': 'Parameter Field Are Empty'
+            }
+        )
+
+    try:
+        query = "update run_table set"
+        flag = 0
+        if request.json.get('row_no') != None:
+            query = query + " row_no='%s'" % row_no
+            flag = 1
+
+        if request.json.get('subject') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " subject='%s'" % subject
+            flag = 1
+
+        if request.json.get('date') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " date='%s'" % date
+            flag = 1
+
+        if request.json.get('attachment_path') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " attachment_path='%s'" % attachment_path
+            flag = 1
+
+        if request.json.get('email_id') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " email_id='%s'" % email_id
+            flag = 1
+
+        if request.json.get('completed') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " completed='%s'" % completed
+            flag = 1
+
+        if request.json.get('mail_id') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " mail_id='%s'" % mail_id
+            flag = 1
+
+        if request.json.get('p_name') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " p_name='%s'" % p_name
+            flag = 1
+
+        if request.json.get('pre_id') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " pre_id='%s'" % pre_id
+            flag = 1
+
+        if request.json.get('ref_no') != None:
+            if flag == 1:
+                query = query + ", "
+            query = query + " ref_no='%s'" % ref_no
+            flag = 1
+
+        if len(query) > len("update run_table set"):
+            # query=query+", completed='X'"
+            query = query + " where row_no=%s" % row_no
+            print(query)
+            log_api_data('query', query)
+
+            sem.acquire()
+            print('Lock Acquired')
+            con = sqlite3.connect("database1.db")
+            cur = con.cursor()
+            cur.execute(query)
+            con.commit()
+
+            cur.close()
+
+            sem.release()
+            print('Lock Released')
+            # akshay code to call API............ first, fetch file_path from local db
+
+            with sqlite3.connect("database1.db") as con:
+                cur = con.cursor()
+                q = f'select file_path from run_table where row_no={row_no};'
+                print(q)
+                log_api_data('q', q)
+                cur.execute(q)
+                r = cur.fetchone()
+                if r:
+                    r = r[0]
+                else:
+                    r = ''
+
+            if r == None:
+                apimessage = "Record updated in db, but API failed due to no File"
+            else:
+                print(row_no)
+                log_api_data('row_no', row_no)
+                print(r)
+                log_api_data('r', r)
+                files = {'doc': open(r, 'rb')}
+                if hosid == 'Max PPT':
+                    API_ENDPOINT = "https://vnusoftware.com/iclaimmax/api/preauth/"
+                else:
+                    API_ENDPOINT = "https://vnusoftware.com/iclaimportal/api/preauth"
+                data = {
+                    'row_no': row_no,
+                    'subject': subject,
+                    'date': date,
+                    'attachment_path': attachment_path,
+                    'email_id': email_id,
+                    'completed': completed,
+                    'mail_id': mail_id,
+                    'p_name': p_name,
+                    'pre_id': pre_id,
+                    'ref_no': ref_no,
+                }
+
+                r = requests.post(url=API_ENDPOINT, data=data, files=files)
+                print(data)
+                log_api_data('data', data)
+                pastebin_url = r.text
+                print(pastebin_url)
+                log_api_data('pastebin_url', pastebin_url)
+                if char == 'X':
+                    query = f'update run_table set completed= "X" where row_no={row_no};'
+                elif char == 'x':
+                    query = f'update run_table set completed= "x" where row_no={row_no};'
+                with sqlite3.connect("database1.db") as con:
+                    cur = con.cursor()
+                    cur.execute(query)
+                if pastebin_url.find("Data Update Success") == -1:
+                    apimessage = "Record updated in db, and API failed"
+                    subprocess.run(["python", "sms_api.py", "api error"])
+                else:
+                    apimessage = 'Record successfully updated, and API successfully called'
+                    # update completed flag in table
+
+            # if api call returns success message, then message = 'Record succ updated, and API succ called.
+            # if not, then message = 'Record updated in db, but API failed.
+            return jsonify({
+                'status': 'success',
+                'message': apimessage
+            })
+        else:
+            return jsonify({
+                'status': 'success',
+                'message': 'Record not successfully updated'
+
+            })
+
+    except Exception as e:
+        log_exceptions()
+        sem.release()
+        print(e.__str__())
+        log_api_data('e.__str__()', e.__str__())
+        return jsonify({
+            'status': 'failure',
+            'message': 'Record does not updated',
+            'reason': e.__str__()
+        })
 
 
 @app.route("/api/getupdatedetailsLog", methods=["POST"])
@@ -27,8 +285,8 @@ def getupdatelog():
             }
         )
     runno = ''
-    if request.form.get('runno') != None:
-        runno = request.form['runno']
+    if request.json.get('runno') != None:
+        runno = request.json['runno']
 
     if runno == '':
         return jsonify(
@@ -191,7 +449,7 @@ def getupdatelog():
 def get_details():
     datadict = dict()
     datalist, result, fields = list(), "", ["row_no", "subject", "date", "attachment", "email_id", "completed",
-                                            "mail_id", "p_name", "p_id"]
+                                            "mail_id", "p_name", "pre_id", "ref_no"]
     q = "select * from run_table where completed = ''"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
