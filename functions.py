@@ -378,8 +378,8 @@ def run_table_insert(subject, date, attach_path, email_id, completed, mail_id, p
     if subject is not None:
         subject = subject.replace("'", "")
     q = f"insert into run_table " \
-        f"(`subject`, `date`, `attachment_path`, `email_id`, `completed`, `mail_id`, `p_name`, `ref_no`) " \
-        f"values ('{subject}','{date}','{attach_path}','{email_id}','{completed}','{mail_id}','{p_name}','{ref_no}')"
+        f"(`subject`, `date`, `attachment_path`, `email_id`, `completed`, `mail_id`, `p_name`, `pre_id`, `ref_no`) " \
+        f"values ('{subject}','{date}','{attach_path}','{email_id}','{completed}','{mail_id}','{p_name}','{pre_id}','{ref_no}')"
     with sqlite3.connect(dbname) as con:
         cur = con.cursor()
         try:

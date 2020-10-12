@@ -9,8 +9,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from functions import run_process, process_row
 from make_log import log_exceptions
 from settings import dbname, folder
-
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 scheduler = BackgroundScheduler()
 state = "running"
 
