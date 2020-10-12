@@ -25,9 +25,9 @@ mail.select("inbox", readonly=True)
 
 
 q = f'(since "{fromtime}" before "{totime}" (SUBJECT "{ic_subject}"))'
-type, data1 = mail.search(None, q)
+# type, data1 = mail.search(None, q)
 
-result, data = mail.fetch(b'40296', "(RFC822)")
+result, data = mail.fetch(b'51225', "(RFC822)")
 # raw_email = data[0][1].decode('utf-8')
 try:
     raw_email = data[0][1].decode('utf-8')

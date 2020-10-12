@@ -51,87 +51,88 @@ def get_mail_id_list(hospital, result):
         mail.select('inbox', readonly=True)
 
         for i in result:
-            p_name, temp_list, t_list = i[2], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
         for i in result:
-            p_name, temp_list, t_list = i[2], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
         for i in result:
-            pre_id, temp_list, t_list = i[1], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             if pre_id in ['0', "", None]:
                 continue
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
         for i in result:
-            pre_id, temp_list, t_list = i[1], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             if pre_id in ['0', "", None]:
                 continue
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
         mail.select(inbox, readonly=True)
         for i in result:
-            p_name, temp_list, t_list = i[2], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
         for i in result:
-            p_name, temp_list, t_list = i[2], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{p_name}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[2], 'p_name', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
         for i in result:
-            pre_id, temp_list, t_list = i[1], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             if pre_id in ['0', "", None]:
                 continue
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
         for i in result:
-            pre_id, temp_list, t_list = i[1], [], []
+            p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             if pre_id in ['0', "", None]:
                 continue
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (SUBJECT "{pre_id}"))')
             temp_list = data[0].split()
             for j in temp_list:
-                t_list.append((j, i[1], 'pre_id', i[0]))
+                t_list.append((j, i[2], i[1], i[0]))
             mail_id_list.extend(t_list)
 
-        tempdict, templist = dict(), list()
-        for i, j, k, l in mail_id_list:
-            tempdict[str(i) + '_' + str(k)] = {"identity": j, "i_name": k, "p_id": l}
-            templist.append(i)
-        templist = list(set(templist))
-        final_mail_id_list = []
-        for i in templist:
-            j, k = "", ""
-            if str(i) + '_p_name' in tempdict:
-                j = tempdict[str(i) + '_p_name']['identity']
-                l = tempdict[str(i) + '_p_name']['p_id']
-            if str(i) + '_pre_id' in tempdict:
-                k = tempdict[str(i) + '_pre_id']['identity']
-                l = tempdict[str(i) + '_p_name']['p_id']
-            final_mail_id_list.append((i, j, k, l))
-        return final_mail_id_list
+
+        # tempdict, templist = dict(), list()
+        # for i, j, k, l in mail_id_list:
+        #     tempdict[str(i) + '_' + str(k)] = {"identity": j, "i_name": k, "p_id": l}
+        #     templist.append(i)
+        # templist = list(set(templist))
+        # final_mail_id_list = []
+        # for i in templist:
+        #     j, k = "", ""
+        #     if str(i) + '_p_name' in tempdict:
+        #         j = tempdict[str(i) + '_p_name']['identity']
+        #         l = tempdict[str(i) + '_p_name']['p_id']
+        #     if str(i) + '_pre_id' in tempdict:
+        #         k = tempdict[str(i) + '_pre_id']['identity']
+        #         l = tempdict[str(i) + '_p_name']['p_id']
+        #     final_mail_id_list.append((i, j, k, l))
+        return mail_id_list
     except:
         log_exceptions()
         return []
@@ -498,10 +499,10 @@ def run_process(interval):
 
 
 if __name__ == "__main__":
-    # a = get_from_query()
-    # if isinstance(a, dict):
-    #     print(a)
-    # b = get_mail_id_list('Max', a)
+    a = get_from_query()
+    if isinstance(a, dict):
+        print(a)
+    b = get_mail_id_list('Max', a)
     download_pdf_and_html('Max', [(b'50228', 'pname', 'refno')])
     pass
     # records = []
