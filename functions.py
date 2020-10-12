@@ -212,8 +212,12 @@ def download_pdf_and_html(hospital, mail_id_list):
                             mail.output_file = open(mail.file_name, 'w')
                             mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
                             mail.output_file.close()
-                            pdfkit.from_file(folder + 'email.html', folder + file_id + '.pdf', configuration=config)
-                            file_name = folder + file_id + '.pdf'
+                            try:
+                                pdfkit.from_file(folder + 'email.html', folder + file_id + '.pdf', configuration=config)
+                                file_name = folder + file_id + '.pdf'
+                            except:
+                                file_name = ""
+                                log_exceptions(subject)
                             if os.path.exists(folder + 'email.html'):
                                 os.remove(folder + 'email.html')
                 # insert file_name, subject, sender, l_time in run table
@@ -249,6 +253,7 @@ def download_pdf_and_html(hospital, mail_id_list):
             # if temp is not None:
             #     sender = temp.group()
             sender = email_message['From']
+            filename = ""
             for mail.part in email_message.walk():
                 filename = mail.part.get_filename()
                 if filename is not None:
@@ -256,6 +261,7 @@ def download_pdf_and_html(hospital, mail_id_list):
                     # if in blacklist
                     # continue
                     if validate_filename(filename) is False:
+                        filename = ""
                         continue
                     filename = os.path.splitext(filename)[0] + file_id + os.path.splitext(filename)[1]
                     att_path = os.path.join(folder, filename)
@@ -264,10 +270,10 @@ def download_pdf_and_html(hospital, mail_id_list):
                         fp.write(mail.part.get_payload(decode=True))
                         file_name = att_path
                         fp.close()
-            if file_name == "":
+            if file_name == "" and filename == "" or filename == None:
                 # code for html
-                lowercase = string.ascii_lowercase
-                filename = ''.join(random.choice(lowercase) for i in range(6))
+                # lowercase = string.ascii_lowercase
+                # filename = ''.join(random.choice(lowercase) for i in range(6))
                 email_message = email.message_from_string(raw_email)
                 for mail.part in email_message.walk():
                     if mail.part.get_content_type() == "text/html" or mail.part.get_content_type() == "text/plain":
@@ -276,8 +282,12 @@ def download_pdf_and_html(hospital, mail_id_list):
                         mail.output_file = open(mail.file_name, 'w')
                         mail.output_file.write("Body: %s" % (mail.body.decode('utf-8')))
                         mail.output_file.close()
-                        pdfkit.from_file(folder + 'email.html', folder + file_id + '.pdf', configuration=config)
-                        file_name = folder + file_id + '.pdf'
+                        try:
+                            pdfkit.from_file(folder + 'email.html', folder + file_id + '.pdf', configuration=config)
+                            file_name = folder + file_id + '.pdf'
+                        except:
+                            file_name = ""
+                            log_exceptions(subject)
                         if os.path.exists(folder + 'email.html'):
                             os.remove(folder + 'email.html')
             # insert file_name, subject, sender, l_time in run table
