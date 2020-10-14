@@ -329,6 +329,7 @@ def get_run_no():
 def run_table_insert(subject, date, attach_path, email_id, completed, mail_id, p_name, pre_id, ref_no):
     if subject is not None:
         subject = subject.replace("'", "")
+    attach_path = os.path.abspath(attach_path)
     q = f"insert into run_table " \
         f"(`subject`, `date`, `attachment_path`, `email_id`, `completed`, `mail_id`, `p_name`, `pre_id`, `ref_no`) " \
         f"values ('{subject}','{date}','{attach_path}','{email_id}','{completed}','{mail_id}','{p_name}','{pre_id}','{ref_no}')"
@@ -469,4 +470,5 @@ def log_api_data(varname, value):
 
 if __name__ == "__main__":
     a = check_if_sub_and_ltime_exist('a', 'b')
+    run_table_insert('a','d','f','g','r','d','sdf','fsd','wer')
     pass
