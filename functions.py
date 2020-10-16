@@ -49,6 +49,13 @@ def get_mail_id_list(hospital, result):
         mail_id_list = []
         mail.select('inbox', readonly=True)
 
+        refno_list = []
+        try:
+            refno_list = [i[0] for i in result]
+            custom_log_data(filename="mss_numbers", refno_list=refno_list)
+        except:
+            pass
+
         for i in result:
             p_name, pre_id, temp_list, t_list = i[2], i[1], [], []
             type, data = mail.search(None, f'(since "{fromtime}" before "{totime}" (BODY "{p_name}"))')
@@ -449,6 +456,7 @@ def run_process(interval):
             print("api failed")
             raise Exception
         print("got api response")
+        mark_inactive_refno(a)
         b = get_mail_id_list('Max', a)
         print("got id list")
         download_pdf_and_html('Max', b)
@@ -468,7 +476,22 @@ def log_api_data(varname, value):
         fp.write(entry)
 
 
+def mark_inactive_refno(api_result):
+    try:
+        refno_list = []
+        for i in api_result:
+            refno_list.append(i[0])
+        refno_list = tuple(refno_list)
+        q = f"update run_table set completed = 'I' where ref_no not in {refno_list}"
+        with sqlite3.connect(dbname) as con:
+            cur = con.cursor()
+            cur.execute(q)
+    except:
+        log_exceptions()
+
+
 if __name__ == "__main__":
-    a = check_if_sub_and_ltime_exist('a', 'b')
-    run_table_insert('a','d','f','g','r','d','sdf','fsd','wer')
-    pass
+    # result = [['asd', 'RC-HS20-11380015', 'SEEMA SINGH']]
+    # a = get_mail_id_list('Max', result)
+    a = [(b'267', 'SEEMA SINGH', 'RC-HS20-11380015', 'asd')]
+    download_pdf_and_html('Max', a)
